@@ -851,7 +851,7 @@
       </div>
       <div class="meta-item">
         <span class="meta-label">Duration</span>
-        <span class="meta-value"> January 2025– Present</span>
+        <span class="meta-value">~12 Months · 2024–2026</span>
       </div>
       <div class="meta-item">
         <span class="meta-label">Methods</span>
@@ -1422,6 +1422,38 @@
   <p>UX Research Case Study · CRM Sales Reporting · <span>CDK Global Modern Retail Team</span><br>Kamala Alcantara, Senior UX Researcher · Leban Hyde, Senior Product Designer · Mary Swan, PM</p>
 </footer>
 
+<style>
+  * { cursor: none !important; }
+
+  #car-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99999;
+    font-size: 22px;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+    will-change: transform, left, top;
+  }
+
+  .dust-particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99998;
+    font-size: 10px;
+    opacity: 1;
+    animation: dust-fade 0.6s ease-out forwards;
+    will-change: opacity, transform;
+  }
+
+  @keyframes dust-fade {
+    0%   { opacity: 0.8; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0;   transform: translate(var(--dx), var(--dy)) scale(0.3); }
+  }
+</style>
+
+<div id="car-cursor">🚗</div>
+
 <script>
   // Progress bar
   window.addEventListener('scroll', () => {
@@ -1439,8 +1471,74 @@
       }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
   reveals.forEach(el => observer.observe(el));
+
+  // 🚗 Car cursor
+  const car = document.getElementById('car-cursor');
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let carX = mouseX;
+  let carY = mouseY;
+  let prevX = mouseX;
+  let prevY = mouseY;
+  let lastDustTime = 0;
+  const dustParticles = ['💨', '·', '•', '˙'];
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function spawnDust(x, y, movingLeft) {
+    const now = Date.now();
+    if (now - lastDustTime < 60) return;
+    lastDustTime = now;
+
+    const el = document.createElement('div');
+    el.className = 'dust-particle';
+    el.textContent = dustParticles[Math.floor(Math.random() * dustParticles.length)];
+
+    // Dust comes out of the back of the car
+    const offsetX = movingLeft ? 18 : -18;
+    el.style.left = (x + offsetX) + 'px';
+    el.style.top  = (y + 4) + 'px';
+
+    const dx = (movingLeft ? 1 : -1) * (8 + Math.random() * 10);
+    const dy = -4 + Math.random() * 8;
+    el.style.setProperty('--dx', dx + 'px');
+    el.style.setProperty('--dy', dy + 'px');
+    el.style.color = ['#1a7a6e','#4aada0','#d4760a','#aaa'][Math.floor(Math.random()*4)];
+
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 650);
+  }
+
+  function animateCar() {
+    // Smooth follow
+    carX += (mouseX - carX) * 0.18;
+    carY += (mouseY - carY) * 0.18;
+
+    const movingLeft = mouseX < prevX;
+    const speed = Math.abs(mouseX - prevX) + Math.abs(mouseY - prevY || 0);
+
+    car.style.left = carX + 'px';
+    car.style.top  = carY + 'px';
+
+    // Flip car to face direction of travel
+    const scaleX = movingLeft ? -1 : 1;
+    car.style.transform = `translate(-50%, -50%) scaleX(${scaleX})`;
+
+    // Spawn dust when moving fast enough
+    if (speed > 3) spawnDust(carX, carY, movingLeft);
+
+    prevX = mouseX;
+    prevY = mouseY;
+    requestAnimationFrame(animateCar);
+  }
+
+  // Hide default cursor on page load
+  document.documentElement.style.cursor = 'none';
+  animateCar();
 </script>
 </body>
 </html>
