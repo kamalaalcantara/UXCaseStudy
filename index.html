@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Reporting Research — Case Study</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1117;
+    --ink-soft: #3a3d4a;
+    --ink-muted: #7a7f94;
+    --cream: #f8f6f1;
+    --white: #ffffff;
+    --teal: #1a7a6e;
+    --teal-light: #e8f5f3;
+    --teal-mid: #4aada0;
+    --amber: #d4760a;
+    --amber-light: #fef3e2;
+    --red: #c0392b;
+    --red-light: #fdf0ef;
+    --border: #e2dfd8;
+    --rule: 1px solid var(--border);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--teal);
+    width: 0%;
+    z-index: 1000;
+    transition: width 0.1s linear;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 900;
+    background: rgba(248,246,241,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 60px;
+  }
+
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--teal); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 80px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(26,122,110,0.07) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -150px; left: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(212,118,10,0.05) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 32px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1.5px;
+    background: var(--teal);
+  }
+
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(48px, 6vw, 88px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    max-width: 900px;
+    margin-bottom: 32px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--teal);
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--ink-soft);
+    max-width: 620px;
+    line-height: 1.6;
+    margin-bottom: 56px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .meta-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* ── STAT STRIP ── */
+  .stat-strip {
+    background: var(--ink);
+    padding: 60px 80px;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .stat-item {
+    flex: 1;
+    max-width: 260px;
+    text-align: center;
+    padding: 0 40px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .stat-item:last-child { border-right: none; }
+
+  .stat-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    color: var(--teal-mid);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+    line-height: 1.4;
+  }
+
+  /* ── SECTION WRAPPER ── */
+  .section {
+    padding: 100px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-full {
+    padding: 100px 80px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+
+  .section-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 80px;
+    line-height: 0.85;
+    color: var(--border);
+    flex-shrink: 0;
+    margin-top: -8px;
+  }
+
+  .section-title-block {}
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 3vw, 44px);
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--ink-soft);
+    max-width: 580px;
+    line-height: 1.65;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: var(--rule);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--teal), var(--teal-mid), var(--border));
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 48px;
+    padding-left: 32px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -38px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: 2px solid var(--cream);
+    box-shadow: 0 0 0 2px var(--teal);
+  }
+
+  .timeline-phase {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 4px;
+  }
+
+  .timeline-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .timeline-desc {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 540px;
+  }
+
+  /* ── INSIGHT CARDS ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .card {
+    background: var(--white);
+    border: var(--rule);
+    border-radius: 3px;
+    padding: 36px 32px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 10px;
+    line-height: 1.25;
+  }
+
+  .card-body {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  /* ── QUOTE BLOCKS ── */
+  .quote-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  .quote-block {
+    background: var(--white);
+    border-left: 3px solid var(--teal);
+    padding: 28px 28px 24px;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .quote-text {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .quote-insight {
+    font-size: 13px;
+    color: var(--teal);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    background: var(--teal-light);
+    border: 1px solid rgba(26,122,110,0.2);
+    border-radius: 3px;
+    padding: 32px 36px;
+    margin: 40px 0;
+  }
+
+  .callout-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+
+  .callout-text {
+    font-size: 17px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  /* ── CALLOUT WARNING ── */
+  .callout-warn {
+    background: var(--amber-light);
+    border: 1px solid rgba(212,118,10,0.25);
+  }
+
+  .callout-warn .callout-label { color: var(--amber); }
+
+  .callout-fail {
+    background: var(--red-light);
+    border: 1px solid rgba(192,57,43,0.2);
+  }
+
+  .callout-fail .callout-label { color: var(--red); }
+
+  /* ── RESEARCH QUESTIONS ── */
+  .rq-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .rq-item {
+    background: var(--white);
+    border: var(--rule);
+    border-radius: 3px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .rq-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--border);
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+
+  .rq-text {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  /* ── OPPORTUNITY TABLE ── */
+  .opp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 40px;
+    font-size: 14px;
+  }
+
+  .opp-table th {
+    text-align: left;
+    padding: 12px 20px;
+    background: var(--ink);
+    color: rgba(255,255,255,0.75);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .opp-table td {
+    padding: 16px 20px;
+    border-bottom: var(--rule);
+    color: var(--ink-soft);
+    background: var(--white);
+    vertical-align: top;
+  }
+
+  .opp-table tr:last-child td { border-bottom: none; }
+
+  .impact-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .impact-vh { background: #fde8e8; color: #c0392b; }
+  .impact-h  { background: #fef3e2; color: #d4760a; }
+  .impact-m  { background: #e8f5f3; color: #1a7a6e; }
+
+  /* ── BRANCH PATHS ── */
+  .branch-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .branch-card {
+    background: var(--white);
+    border: var(--rule);
+    border-radius: 3px;
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .branch-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+
+  .branch-fail::before { background: var(--red); }
+  .branch-win::before  { background: var(--teal); }
+
+  .branch-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .branch-fail .branch-tag { color: var(--red); }
+  .branch-win .branch-tag  { color: var(--teal); }
+
+  .branch-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .branch-body {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  .branch-lesson {
+    margin-top: 24px;
+    padding: 16px 20px;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  .branch-fail .branch-lesson { background: var(--red-light); color: var(--red); }
+  .branch-win  .branch-lesson { background: var(--teal-light); color: var(--teal); }
+
+  /* ── PARTICIPANT TABLE ── */
+  .participant-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 32px;
+  }
+
+  .participant-table th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--ink);
+    color: rgba(255,255,255,0.65);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .participant-table td {
+    padding: 11px 16px;
+    border-bottom: var(--rule);
+    background: var(--white);
+    color: var(--ink-soft);
+  }
+
+  .participant-table tr:nth-child(even) td { background: #fafaf8; }
+  .participant-table tr:last-child td { border-bottom: none; }
+
+  /* ── OUTCOME METRICS ── */
+  .outcomes-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  .outcome-tile {
+    background: var(--white);
+    border: var(--rule);
+    border-radius: 3px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .outcome-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .outcome-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+
+  .outcome-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--teal);
+    line-height: 1.2;
+  }
+
+  /* ── DARK SECTION ── */
+  .dark-section {
+    background: var(--ink);
+    color: var(--white);
+  }
+
+  .dark-section .section { color: var(--white); }
+  .dark-section .section-title { color: var(--white); }
+  .dark-section .section-desc { color: rgba(255,255,255,0.6); }
+  .dark-section .section-number { color: rgba(255,255,255,0.08); }
+  .dark-section .section-eyebrow { color: var(--teal-mid); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+    padding: 40px;
+    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  footer span { color: var(--teal-mid); }
+
+  /* ── ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ── SCROLLYTELL TAG ── */
+  .tag {
+    display: inline-block;
+    background: var(--teal-light);
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+  }
+
+  /* ── HYPOTHESIS LIST ── */
+  .hypo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .hypo-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--white);
+    border: var(--rule);
+    border-radius: 3px;
+    padding: 18px 22px;
+  }
+
+  .hypo-icon { font-size: 18px; flex-shrink: 0; }
+
+  .hypo-text {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+
+  /* ── ROLE CARDS ── */
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .role-card {
+    border: var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--white);
+  }
+
+  .role-card-header {
+    padding: 20px 24px;
+    background: var(--teal);
+  }
+
+  .role-card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--white);
+  }
+
+  .role-card-body {
+    padding: 24px;
+  }
+
+  .role-pain-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+
+  .role-pain-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .role-pain-list li {
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.45;
+  }
+
+  .role-pain-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--teal);
+    font-size: 11px;
+    top: 1px;
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .section, .section-full { padding: 60px 24px; }
+    .stat-strip { padding: 48px 24px; flex-wrap: wrap; }
+    .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px 0; }
+    .cards-grid, .role-grid { grid-template-columns: 1fr; }
+    .quote-grid, .rq-list { grid-template-columns: 1fr; }
+    .branch-wrap { grid-template-columns: 1fr; }
+    .outcomes-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-meta { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<nav>
+  <span class="nav-logo">CRM Reporting · Case Study</span>
+  <ul class="nav-links">
+    <li><a href="#context">Context</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#insights">Insights</a></li>
+    <li><a href="#branches">Branches</a></li>
+    <li><a href="#outcomes">Outcomes</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">UX Research Case Study</div>
+    <h1 class="hero-title">When Reporting Fails,<br><em>Dealers Leave.</em></h1>
+    <p class="hero-subtitle">A year-long discovery-to-validation research program that surfaced the root causes of CRM churn — and directly shaped a self-service reporting product now heading to pilot.</p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">Role</span>
+        <span class="meta-value">UX Researcher (Lead)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Collaborators</span>
+        <span class="meta-value">PM, UX Designer, Engineering</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Duration</span>
+        <span class="meta-value">~12 Months · 2024–2026</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Methods</span>
+        <span class="meta-value">Desk Research · Stakeholder Interviews · Moderated Usability · Rapid Iteration</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ STAT STRIP ═══════════════════════════════ -->
+<div class="stat-strip">
+  <div class="stat-item reveal">
+    <div class="stat-number">44%</div>
+    <div class="stat-label">of churned CRM customers<br>cited reporting as the reason</div>
+  </div>
+  <div class="stat-item reveal reveal-delay-1">
+    <div class="stat-number">15</div>
+    <div class="stat-label">dealership users interviewed<br>across 8 dealerships</div>
+  </div>
+  <div class="stat-item reveal reveal-delay-2">
+    <div class="stat-number">26×</div>
+    <div class="stat-label">one manager ran the same report<br>manually for each of 26 stores</div>
+  </div>
+  <div class="stat-item reveal reveal-delay-3">
+    <div class="stat-number">400+</div>
+    <div class="stat-label">existing reports in the system<br>users regularly used only 5–7</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 1 — CONTEXT ═══════════════════════════════ -->
+<section id="context">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-number">01</div>
+      <div class="section-title-block">
+        <div class="section-eyebrow">Context & Problem Space</div>
+        <h2 class="section-title">Reporting was a churn driver hiding in plain sight.</h2>
+        <p class="section-desc">Internal churn data flagged reporting as a leading cause of customer cancellations. But the team lacked a clear picture of who was affected, why, and what "better" actually looked like.</p>
+      </div>
+    </div>
+
+    <div class="callout reveal">
+      <div class="callout-label">The Business Problem</div>
+      <div class="callout-text">Dealers were exporting raw data, rebuilding reports in Excel, and running the same report dozens of times across individual stores — all because the CRM's native reporting couldn't keep up with how they actually worked. Forty-four percent of churned customers explicitly pointed to reporting as their reason for leaving.</div>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card reveal">
+        <div class="card-icon">📊</div>
+        <div class="card-title">The data existed — but couldn't be trusted</div>
+        <div class="card-body">Dealers wanted insight from their CRM data, but inconsistencies between reports eroded confidence. Many kept parallel spreadsheets just to verify what the CRM told them.</div>
+      </div>
+      <div class="card reveal reveal-delay-1">
+        <div class="card-icon">📂</div>
+        <div class="card-title">Too many reports, too little clarity</div>
+        <div class="card-body">Over 400 reports existed in the system. Dealers ignored most of them — not because they weren't useful, but because there was no way to find or organize the ones they needed.</div>
+      </div>
+      <div class="card reveal reveal-delay-2">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">A market opportunity and a retention risk</div>
+        <div class="card-body">Competitors like Tekion were gaining ground with cleaner dashboards and self-service reporting. Fixing this wasn't just about retention — it was about competitive positioning.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 2 — PROCESS ═══════════════════════════════ -->
+<section id="process">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-number">02</div>
+      <div class="section-title-block">
+        <div class="section-eyebrow">Research Process</div>
+        <h2 class="section-title">A full arc — from desk to discovery to validation.</h2>
+        <p class="section-desc">This project followed a mature, multi-phase research program: grounding in data before touching a single user, then surfacing real-world needs, then validating a designed solution.</p>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-phase">Phase 1 — Foundation</div>
+        <div class="timeline-title">Desk Research & Stakeholder Immersion</div>
+        <div class="timeline-desc">Started with internal churn reports, Amplitude usage data, and customer satisfaction signals to understand the scale and shape of the problem. Then conducted a structured stakeholder tour — Product Manager, Design Manager, Product Marketing, Customer Success Managers (CSMs), Regional Managers, and the Director of Engineering — to build a 360° picture of what the team knew and where the gaps were. This phase ensured every subsequent research question was grounded in both business reality and user signal.</div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-phase">Phase 2 — Discovery</div>
+        <div class="timeline-title">Moderated User Interviews · 8 Dealerships · 15 Users</div>
+        <div class="timeline-desc">Conducted remote moderated interviews with 15 dealership users across 8 different auto groups, spanning roles from BDC Managers and Sales Managers to GMs, Marketing Leaders, and owners. Sessions followed a structured but conversational moderator guide covering: current reporting habits, pain points and workarounds, customization needs, trust in data, and self-service readiness. Roles included West Herr, Huntington Honda, Sheehy Auto Group, Jim Ellis, LA Car Guy, and more.</div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-phase">Phase 3 — Synthesis</div>
+        <div class="timeline-title">Thematic Analysis & UX Recommendations</div>
+        <div class="timeline-desc">Synthesized findings into five key insights, three major workaround patterns, role-based customer journey maps, and a prioritized UX opportunity table mapping pain points to business impact (Very High / High / Medium). Deliverables included an executive summary, task performance scorecard framework, role-based insights, and a 10-slide stakeholder readout presented to product and engineering leadership.</div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-phase">Phase 4 — Divergence</div>
+        <div class="timeline-title">Two Parallel Bets: AI Tool vs. Designer-Led UI</div>
+        <div class="timeline-desc">Research recommendations spawned two development paths. An engineer pursued an AI-powered reporting tool based on a niche user suggestion. In parallel, the design team built a structured self-service Report Builder directly informed by the research findings. Both paths were tested — one failed fast, one succeeded.</div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-phase">Phase 5 — Validation</div>
+        <div class="timeline-title">Usability Testing of Report Builder · Pilot Preparation</div>
+        <div class="timeline-desc">Conducted moderated usability testing of the live Report Builder with original research participants, evaluating 5 core task scenarios. Internal testing passed. The product is now heading to pilot with a cohort of dealerships — closing the loop from research to impact.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 3 — PARTICIPANTS ═══════════════════════════════ -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-number">03</div>
+    <div class="section-title-block">
+      <div class="section-eyebrow">Participants</div>
+      <h2 class="section-title">Real users from real stores.</h2>
+      <p class="section-desc">Participants were recruited from 8 original-access dealerships, representing a range of roles, group sizes, and geographic contexts. Target profiles: Sales Managers, BDC / Internet Managers, General Sales Managers, Marketing Leaders, and CRM Managers.</p>
+    </div>
+  </div>
+
+  <table class="participant-table reveal">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Dealership</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Kirsten Piskun</td><td>BDC Manager</td><td>West Herr</td></tr>
+      <tr><td>Roxanne Carrow</td><td>Director, BDC Sales</td><td>West Herr</td></tr>
+      <tr><td>Heather Mejia-Farr</td><td>BDC Assistant Manager</td><td>West Herr</td></tr>
+      <tr><td>Justin Haynes</td><td>Regional General Manager</td><td>Huntington Honda</td></tr>
+      <tr><td>Frankie Fardette</td><td>General Sales Manager</td><td>Huntington Honda</td></tr>
+      <tr><td>Craig Orlando</td><td>Fixed Ops Director</td><td>Huntington Honda</td></tr>
+      <tr><td>Shannon Sexton</td><td>BDC Manager</td><td>Sheehy Auto Group</td></tr>
+      <tr><td>Brooke Canty</td><td>BDC Director</td><td>World Auto Group</td></tr>
+      <tr><td>John Nolan</td><td>Ecommerce Director</td><td>New Country Auto</td></tr>
+      <tr><td>Daniel Lin</td><td>Owner / "CIO"</td><td>New Century Auto</td></tr>
+      <tr><td>Bob McLoughlin</td><td>Sales / Digital Marketing</td><td>Jim Ellis</td></tr>
+      <tr><td>Erica Cook</td><td>CRM Manager</td><td>Jim Ellis</td></tr>
+      <tr><td>Chris Adamson</td><td>Sr. Digital Marketing Manager</td><td>Jim Ellis</td></tr>
+      <tr><td>Stephanie Morris</td><td>Sales Manager</td><td>Jim Ellis</td></tr>
+      <tr><td>Brad Burlingham</td><td>VP of Marketing</td><td>LA Car Guy</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-warn reveal" style="margin-top:40px;">
+    <div class="callout-label">Research Design Note</div>
+    <div class="callout-text">Targeting 3 primary user archetypes — <strong>Sales &amp; BDC Managers</strong>, <strong>General Sales Managers &amp; Directors</strong>, and <strong>Marketing Leaders</strong> — allowed the research to capture how different roles intersect with the same reporting system in fundamentally different ways, surfacing friction that role-agnostic surveys would have missed.</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 4 — RESEARCH QUESTIONS ═══════════════════════════════ -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-number">04</div>
+    <div class="section-title-block">
+      <div class="section-eyebrow">Research Questions</div>
+      <h2 class="section-title">Seven questions that shaped everything.</h2>
+      <p class="section-desc">These weren't exploratory prompts — each question was designed to map directly to a potential product or design decision.</p>
+    </div>
+  </div>
+
+  <ul class="rq-list">
+    <li class="rq-item reveal">
+      <span class="rq-num">1</span>
+      <span class="rq-text">Who's using CRM sales reporting and why?</span>
+    </li>
+    <li class="rq-item reveal reveal-delay-1">
+      <span class="rq-num">2</span>
+      <span class="rq-text">What is their reporting workflow, and what are they missing in their experience?</span>
+    </li>
+    <li class="rq-item reveal reveal-delay-2">
+      <span class="rq-num">3</span>
+      <span class="rq-text">How often are they building reports, and what are their top use cases?</span>
+    </li>
+    <li class="rq-item reveal">
+      <span class="rq-num">4</span>
+      <span class="rq-text">What key reporting metrics power their meetings and decisions?</span>
+    </li>
+    <li class="rq-item reveal reveal-delay-1">
+      <span class="rq-num">5</span>
+      <span class="rq-text">What are their pain points?</span>
+    </li>
+    <li class="rq-item reveal reveal-delay-2">
+      <span class="rq-num">6</span>
+      <span class="rq-text">What level of customization would enhance their reporting experience?</span>
+    </li>
+    <li class="rq-item reveal">
+      <span class="rq-num">7</span>
+      <span class="rq-text">How can we streamline the experience for multi-store reporting?</span>
+    </li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 5 — INSIGHTS ═══════════════════════════════ -->
+<section id="insights">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-number">05</div>
+      <div class="section-title-block">
+        <div class="section-eyebrow">Key Insights</div>
+        <h2 class="section-title">Five findings that cut through the noise.</h2>
+        <p class="section-desc">Every insight below was grounded in direct user quotes, behavioral observation, and corroborating patterns across multiple participants and roles.</p>
+      </div>
+    </div>
+
+    <!-- Workarounds -->
+    <div class="tag reveal">🔧 Top Workarounds</div>
+    <div class="quote-grid">
+      <div class="quote-block reveal">
+        <div class="quote-text">"95% of the time we take your reports, export them, and redo them."</div>
+        <div class="quote-insight">→ Insight: Dealers want flexibility and control — but inside the product, not in Excel. Limited customization, clunky interfaces, and poor formatting drove rebuilding from scratch.</div>
+      </div>
+      <div class="quote-block reveal reveal-delay-1">
+        <div class="quote-text">"I have to pull reports for each store and cut/paste to make a group report."</div>
+        <div class="quote-insight">→ Insight: Multi-store and longitudinal reporting was entirely missing. Dealers needed consolidated cross-store views without repetitive, error-prone manual steps.</div>
+      </div>
+      <div class="quote-block reveal">
+        <div class="quote-text">"We keep our own Google Doc to track monthly leads because CRM is wrong."</div>
+        <div class="quote-insight">→ Insight: Dealers were building shadow systems to verify CRM data. Trust in data was critically low — an urgent signal for better validation and transparency.</div>
+      </div>
+      <div class="quote-block reveal reveal-delay-1">
+        <div class="quote-text">"It takes me 2.5 hours to run a single report across all our stores — just waiting for it to load."</div>
+        <div class="quote-insight">→ Insight: Beyond UX friction, raw performance was a dealbreaker. Reporting was described as a slow, manual process that interrupted the entire workday.</div>
+      </div>
+    </div>
+
+    <!-- Key Insights Cards -->
+    <div style="margin-top: 64px;">
+      <div class="tag reveal">💡 Key Insights</div>
+      <div class="cards-grid">
+        <div class="card reveal">
+          <div class="card-icon">📋</div>
+          <div class="card-title">Dealers use only 5–7 reports</div>
+          <div class="card-body">Despite 400+ reports in the system, users relied on a predictable handful: Traffic Management, User Activity, Source/Sub-Source, Internet Sales, and Confirmed Sales. Discovery was broken — users just didn't know what else existed.</div>
+        </div>
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">👥</div>
+          <div class="card-title">Duplicate leads erode everything</div>
+          <div class="card-body">Without built-in duplicate detection, BDC and Sales Managers spent hours manually exporting and cross-referencing data. Duplicates inflated metrics, confused reps, and made accurate coaching nearly impossible.</div>
+        </div>
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">🎛️</div>
+          <div class="card-title">"Customization" ≠ building from scratch</div>
+          <div class="card-body">Users didn't want SQL-level power — they wanted templates they could tweak. Filter by store, hide columns, sort by rep. Sales managers often just wanted to reorder a few fields or combine two standard reports.</div>
+        </div>
+        <div class="card reveal">
+          <div class="card-icon">⏱️</div>
+          <div class="card-title">Workflow inefficiency was the real killer</div>
+          <div class="card-body">Reports couldn't be saved, batched, scheduled, or easily refreshed. Every new timeframe or location meant starting over. This wasn't inconvenience — it was hours of lost time per week, per manager.</div>
+        </div>
+        <div class="card reveal reveal-delay-1">
+          <div class="card-icon">🏬</div>
+          <div class="card-title">Multi-store reporting didn't exist</div>
+          <div class="card-body">Group-level managers had zero native tools for cross-store visibility. They wanted rollups, region filters, and side-by-side performance comparisons in a single view — not 26 separate exports stitched together in Excel.</div>
+        </div>
+        <div class="card reveal reveal-delay-2">
+          <div class="card-icon">📉</div>
+          <div class="card-title">Data trust was dangerously low</div>
+          <div class="card-body">Users frequently asked "How did you get this number?" when comparing reports. The inconsistency between CRM figures and other sources (DMS, Autotrader, sales logs) had normalized distrust as a baseline behavior.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 6 — ROLE JOURNEYS ═══════════════════════════════ -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-number">06</div>
+    <div class="section-title-block">
+      <div class="section-eyebrow">Role-Based Pain Points</div>
+      <h2 class="section-title">Same system. Three completely different experiences.</h2>
+      <p class="section-desc">Customer journey mapping revealed how radically different the reporting experience felt depending on the role — and how each archetype required distinct design solutions.</p>
+    </div>
+  </div>
+
+  <div class="role-grid">
+    <div class="role-card reveal">
+      <div class="role-card-header">
+        <div class="role-card-title">Sales & BDC Managers</div>
+      </div>
+      <div class="role-card-body">
+        <div class="role-pain-title">Top Pain Points</div>
+        <ul class="role-pain-list">
+          <li>No way to sort tasks by type or priority; unworked leads aren't flagged</li>
+          <li>No visibility into communications quality (repeated templates, email/call mix)</li>
+          <li>Reports require multiple exports; metrics live in different formats/sources</li>
+          <li>Lead source performance skewed without clean filtering</li>
+          <li>No multi-store or aggregate reporting function</li>
+        </ul>
+      </div>
+    </div>
+    <div class="role-card reveal reveal-delay-1">
+      <div class="role-card-header">
+        <div class="role-card-title">General Sales Managers & Directors</div>
+      </div>
+      <div class="role-card-body">
+        <div class="role-pain-title">Top Pain Points</div>
+        <ul class="role-pain-list">
+          <li>Long load times; no combined reports across stores</li>
+          <li>No single view of Set–Show–Sold; inconsistent metrics</li>
+          <li>Monthly wrap-up: conflicting data, time-consuming cleanup, duplicate lead detection relies on manual workarounds</li>
+          <li>UX/UI clunky for drilldowns, not enough guidance or filters</li>
+        </ul>
+      </div>
+    </div>
+    <div class="role-card reveal reveal-delay-2">
+      <div class="role-card-header">
+        <div class="role-card-title">Marketing Leaders</div>
+      </div>
+      <div class="role-card-body">
+        <div class="role-pain-title">Top Pain Points</div>
+        <ul class="role-pain-list">
+          <li>No cross-channel attribution; hard to isolate website-only leads</li>
+          <li>Data spread across multiple systems</li>
+          <li>Manual comparison; no multi-store dashboards; no anomaly alerts</li>
+          <li>CRM data not presentation-ready; can't automate report delivery or annotate key takeaways</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 7 — UX RECOMMENDATIONS ═══════════════════════════════ -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-number">07</div>
+    <div class="section-title-block">
+      <div class="section-eyebrow">UX Recommendations</div>
+      <h2 class="section-title">From insight to opportunity — prioritized by impact.</h2>
+      <p class="section-desc">Recommendations were mapped to a three-tier impact framework based on observed user behavior: how many users were affected, whether the issue blocked core tasks, and whether it was directly tied to churn risk.</p>
+    </div>
+  </div>
+
+  <table class="opp-table reveal">
+    <thead>
+      <tr>
+        <th>Opportunity</th>
+        <th>Evidence</th>
+        <th>Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Allow bulk report actions across multiple stores</td>
+        <td>Users spent 10–15 hours weekly running the same reports across multiple stores individually</td>
+        <td><span class="impact-badge impact-vh">Very High</span></td>
+      </tr>
+      <tr>
+        <td>Add familiar UI elements that explain report metrics (hover tooltips, etc.)</td>
+        <td>Dealers frequently asked "How did you get this number?" when comparing conflicting reports — leading to mistrust</td>
+        <td><span class="impact-badge impact-vh">Very High</span></td>
+      </tr>
+      <tr>
+        <td>Introduce more controls for key reporting filters (date picker, toggles for lead type, role, individuals)</td>
+        <td>Users wanted to filter by "Feb vs. March leads" and simplify overly dense reports</td>
+        <td><span class="impact-badge impact-vh">Very High</span></td>
+      </tr>
+      <tr>
+        <td>Enable split-deal reporting support</td>
+        <td>Users expressed frustration over not being able to track split deals accurately, slowing work</td>
+        <td><span class="impact-badge impact-vh">Very High</span></td>
+      </tr>
+      <tr>
+        <td>Enable familiar customization UI (favoriting, drag-and-drop columns)</td>
+        <td>Multiple users described wanting a simple "Lego-like" builder instead of requesting heavy SQL-based reports</td>
+        <td><span class="impact-badge impact-h">High</span></td>
+      </tr>
+      <tr>
+        <td>Allow users to discover and interact with reports and search for key metrics</td>
+        <td>Users stated they don't know what reports exist and rely on CSMs to activate them manually</td>
+        <td><span class="impact-badge impact-h">High</span></td>
+      </tr>
+      <tr>
+        <td>Add scheduling options for recurring report delivery</td>
+        <td>Dealers asked "Can I have it sent to me once a week?" — but noted it wasn't possible</td>
+        <td><span class="impact-badge impact-m">Medium</span></td>
+      </tr>
+      <tr>
+        <td>Improve visual hierarchy and reduce noise in report layouts</td>
+        <td>Dealers described the current UI as "depressing," overloaded, and hard to interpret in meetings</td>
+        <td><span class="impact-badge impact-m">Medium</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 8 — BRANCHES ═══════════════════════════════ -->
+<section id="branches">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-number">08</div>
+      <div class="section-title-block">
+        <div class="section-eyebrow">What Happened Next</div>
+        <h2 class="section-title">Research spawned two paths. One failed. One flew.</h2>
+        <p class="section-desc">After the research readout, the team pursued two parallel development bets. This divergence — and what happened to each — is one of the most instructive parts of the project.</p>
+      </div>
+    </div>
+
+    <div class="branch-wrap">
+
+      <div class="branch-card branch-fail reveal">
+        <div class="branch-tag">⚠ Path A — Failed Fast</div>
+        <div class="branch-title">AI-Powered Reporting Tool</div>
+        <div class="branch-body">
+          <p>A single outlier suggestion from one participant — that an AI assistant might help with reporting queries — prompted an engineer to prototype an AI-powered reporting tool. The concept: users would ask the CRM natural-language questions and receive generated reports.</p>
+          <br>
+          <p>The tool was built and tested. It didn't work. Users couldn't reliably get the outputs they needed, the AI responses were inconsistent, and the interaction model didn't match how dealers actually think about data. It introduced new complexity instead of reducing existing friction.</p>
+          <br>
+          <p>The team killed it quickly — without overinvesting — and redirected energy to the research-backed path.</p>
+        </div>
+        <div class="branch-lesson">
+          Research lesson: One participant's offhand comment is not a signal. The entire body of research pointed to structured, predictable control — not open-ended AI interaction. Failing fast here validated the value of listening to the whole picture, not the loudest idea.
+        </div>
+      </div>
+
+      <div class="branch-card branch-win reveal reveal-delay-1">
+        <div class="branch-tag">✓ Path B — Heading to Pilot</div>
+        <div class="branch-title">Designer-Led Report Builder</div>
+        <div class="branch-body">
+          <p>Directly informed by the research, the design team built Report Builder: a structured self-service reporting experience that addressed the five core findings head-on.</p>
+          <br>
+          <p>Features shipped: CRM permission-based access, multi-location reporting, base report templates, add/remove/reorder columns, data preview, save and organize reports, save column + filter configurations, CSV/Excel export, and scheduled delivery.</p>
+          <br>
+          <p>Internal usability testing validated the core workflows. Participants completed high-value tasks independently, expressed increased confidence in data, and — critically — stopped reaching for Excel. The product is now entering pilot with dealerships from the original research cohort.</p>
+        </div>
+        <div class="branch-lesson">
+          Research lesson: When the design solution maps directly to validated needs — not imagined ones — it earns trust in testing faster. Users recognized their own pain points being solved.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 9 — VALIDATION ═══════════════════════════════ -->
+<div class="section">
+  <div class="section-header reveal">
+    <div class="section-number">09</div>
+    <div class="section-title-block">
+      <div class="section-eyebrow">Usability Validation Study</div>
+      <h2 class="section-title">Closing the loop — testing the thing we built.</h2>
+      <p class="section-desc">The validation study brought original research participants back to test the live Report Builder. Five core task scenarios were evaluated against defined success criteria.</p>
+    </div>
+  </div>
+
+  <div class="callout reveal">
+    <div class="callout-label">Five Core Task Scenarios</div>
+    <div class="callout-text">
+      <strong>Task 1 — Start From a Base Report:</strong> Navigate to Report Builder, locate the Set → Show → Sold report, and adjust date filters for last month.<br><br>
+      <strong>Task 2 — Customize Columns:</strong> Add, remove, and reorder columns to match a presentation-ready view. Evaluate drag-and-drop clarity and column definition comprehension.<br><br>
+      <strong>Task 3 — Multi-Location Reporting:</strong> Generate a report comparing performance across all stores. Evaluate ease of location selection, rollup understanding, and trust in aggregated totals.<br><br>
+      <strong>Task 4 — Save & Organize:</strong> Save the customized report, name it, and locate it again. Evaluate naming clarity and folder/organization model.<br><br>
+      <strong>Task 5 — Schedule & Export:</strong> Schedule the report for weekly delivery and download as CSV. Evaluate scheduling discoverability and export formatting.
+    </div>
+  </div>
+
+  <div class="cards-grid" style="margin-top: 40px;">
+    <div class="card reveal">
+      <div class="card-icon">📐</div>
+      <div class="card-title">Quantitative Metrics</div>
+      <div class="card-body">Task success rate, time on task, error rate, assistance required, System Usability Scale (SUS) score, and confidence rating (1–5) captured for every session.</div>
+    </div>
+    <div class="card reveal reveal-delay-1">
+      <div class="card-icon">🗣️</div>
+      <div class="card-title">Qualitative Signals</div>
+      <div class="card-body">Thematic coding around trust ("I believe this number" vs. "I'd double check"), customization clarity, efficiency, cognitive load, and terminology confusion.</div>
+    </div>
+    <div class="card reveal reveal-delay-2">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Success Criteria</div>
+      <div class="card-body">80%+ task completion without moderator assistance. Multi-store reporting completed in 3–5 minutes. Users express decreased need for Excel. Increased CRM data confidence quantitatively measured.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════ SECTION 10 — OUTCOMES ═══════════════════════════════ -->
+<section id="outcomes">
+  <div class="section">
+    <div class="section-header reveal">
+      <div class="section-number">10</div>
+      <div class="section-title-block">
+        <div class="section-eyebrow">Outcomes & Impact</div>
+        <h2 class="section-title">From churn signal to shipped product.</h2>
+        <p class="section-desc">This project demonstrates what rigorous, longitudinal UX research can do when it's treated as a strategic asset — not a checkbox before design starts.</p>
+      </div>
+    </div>
+
+    <div class="outcomes-grid">
+      <div class="outcome-tile reveal">
+        <div class="outcome-icon">🏁</div>
+        <div class="outcome-label">Status</div>
+        <div class="outcome-value">Heading to Pilot</div>
+      </div>
+      <div class="outcome-tile reveal reveal-delay-1">
+        <div class="outcome-icon">🤝</div>
+        <div class="outcome-label">Stakeholders Aligned</div>
+        <div class="outcome-value">PM + Eng + Design</div>
+      </div>
+      <div class="outcome-tile reveal reveal-delay-2">
+        <div class="outcome-icon">⚡</div>
+        <div class="outcome-label">Failed Fast On</div>
+        <div class="outcome-value">AI Tool (1 Outlier)</div>
+      </div>
+      <div class="outcome-tile reveal reveal-delay-3">
+        <div class="outcome-icon">📋</div>
+        <div class="outcome-label">Deliverables</div>
+        <div class="outcome-value">6 Artifacts</div>
+      </div>
+    </div>
+
+    <div class="hypo-list" style="margin-top:56px;">
+      <div class="tag reveal">Research Hypotheses — Validated</div>
+      <div class="hypo-item reveal">
+        <span class="hypo-icon">✓</span>
+        <span class="hypo-text"><strong>Users will successfully customize base reports without needing support</strong> — confirmed in internal usability testing. Most participants completed column customization independently.</span>
+      </div>
+      <div class="hypo-item reveal">
+        <span class="hypo-icon">✓</span>
+        <span class="hypo-text"><strong>Multi-store managers will complete cross-store reporting faster than in legacy workflow</strong> — early testing showed significant time reduction vs. the manual 26-export process.</span>
+      </div>
+      <div class="hypo-item reveal">
+        <span class="hypo-icon">✓</span>
+        <span class="hypo-text"><strong>Save + schedule features will be perceived as high value</strong> — scheduling was consistently cited as a delight feature. Participants expressed surprise it now existed.</span>
+      </div>
+      <div class="hypo-item reveal">
+        <span class="hypo-icon">✓</span>
+        <span class="hypo-text"><strong>Column-level control will reduce Excel dependency</strong> — participants explicitly noted they wouldn't need to export to Excel for the tasks they tested.</span>
+      </div>
+      <div class="hypo-item reveal">
+        <span class="hypo-icon">✗</span>
+        <span class="hypo-text"><strong>An AI-powered interface would reduce reporting friction</strong> — disproved early. The AI tool prototype failed testing. The hypothesis was rooted in a single outlier signal, not the broader research body. Failing fast here preserved team resources and validated the structured-UI direction.</span>
+      </div>
+    </div>
+
+    <div class="callout reveal" style="margin-top: 56px;">
+      <div class="callout-label">What Made This Project Exemplary</div>
+      <div class="callout-text">This project followed a research arc that most teams skip: <strong>grounding in data before users</strong>, then <strong>stakeholder immersion before fieldwork</strong>, then <strong>rigorous synthesis before recommendations</strong>, then <strong>validation before shipping</strong>. It also demonstrated disciplined prioritization — a single user suggestion generated a parallel bet that was tested and abandoned quickly, while the research-backed path succeeded. The result is a product that its own users will recognize, because it was built from their words.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<footer>
+  <p>UX Research Case Study · CRM Sales Reporting · <span>CDK Global Modern Retail Team</span><br>Kamala Alcantara, Senior UX Researcher · Leban Hyde, Senior Product Designer · Mary Swan, PM</p>
+</footer>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.body.scrollHeight - window.innerHeight;
+    document.getElementById('progress').style.width = (scrolled / total * 100) + '%';
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
